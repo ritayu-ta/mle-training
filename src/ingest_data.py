@@ -1,30 +1,36 @@
 import os
+import argparse
 import tarfile
+import pickle
 
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import randint
 from six.moves import urllib
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import (
-    GridSearchCV,
-    RandomizedSearchCV,
     StratifiedShuffleSplit,
     train_test_split,
 )
-from sklearn.tree import DecisionTreeRegressor
 
+from utils import configure_logger
+
+# path to files in package
 DOWNLOAD_ROOT = "https://raw.githubusercontent.com/ageron/handson-ml/master/"
-HOUSING_PATH = os.path.join("datasets", "housing")
+PARENT_PATH = os.path.dirname(os.path.dirname(__file__))
+HOUSING_PATH = os.path.join(PARENT_PATH + "/data/raw", "housing")
 HOUSING_URL = DOWNLOAD_ROOT + "datasets/housing/housing.tgz"
 
+ingestion_logger = configure_logger(
+    log_file=os.path.join(PARENT_PATH, "logs/ingest_data.log")
+)
 
+ingestion_logger.info("Data Ingestion - Started")
+
+
+# function to pull data from URL
 def fetch_housing_data(housing_url=HOUSING_URL, housing_path=HOUSING_PATH):
     os.makedirs(housing_path, exist_ok=True)
     tgz_path = os.path.join(housing_path, "housing.tgz")
@@ -34,13 +40,17 @@ def fetch_housing_data(housing_url=HOUSING_URL, housing_path=HOUSING_PATH):
     housing_tgz.close()
 
 
+# function to load housing data
 def load_housing_data(housing_path=HOUSING_PATH):
     csv_path = os.path.join(housing_path, "housing.csv")
     return pd.read_csv(csv_path)
 
+
 fetch_housing_data()
 housing = load_housing_data()
+ingestion_logger.info("Data Ingestion - Data Download - Completed")
 
+# split data into training and validation
 train_set, test_set = train_test_split(housing, test_size=0.2, random_state=42)
 
 housing["income_cat"] = pd.cut(
@@ -87,19 +97,15 @@ corr_matrix = housing.corr()
 corr_matrix["median_house_value"].sort_values(ascending=False)
 housing["rooms_per_household"] = housing["total_rooms"] / housing["households"]
 
-housing["bedrooms_per_room"] = (
-    housing["total_bedrooms"] / housing["total_rooms"]
-)
-housing["population_per_household"] = (
-    housing["population"] / housing["households"]
-)
+housing["bedrooms_per_room"] = housing["total_bedrooms"] / housing["total_rooms"]
+housing["population_per_household"] = housing["population"] / housing["households"]
 
 
 housing = strat_train_set.drop(
     "median_house_value", axis=1
 )  # drop labels for training set
 housing_labels = strat_train_set["median_house_value"].copy()
-
+ingestion_logger.info("Data Ingestion - Data Split - Completed")
 
 imputer = SimpleImputer(strategy="median")
 
@@ -107,12 +113,11 @@ housing_num = housing.drop("ocean_proximity", axis=1)
 
 imputer.fit(housing_num)
 X = imputer.transform(housing_num)
+ingestion_logger.info("Data Ingestion - Data Imputation - Completed")
 
 housing_tr = pd.DataFrame(X, columns=housing_num.columns, index=housing.index)
 
-housing_tr["rooms_per_household"] = (
-    housing_tr["total_rooms"] / housing_tr["households"]
-)
+housing_tr["rooms_per_household"] = housing_tr["total_rooms"] / housing_tr["households"]
 
 housing_tr["bedrooms_per_room"] = (
     housing_tr["total_bedrooms"] / housing_tr["total_rooms"]
@@ -123,83 +128,10 @@ housing_tr["population_per_household"] = (
 
 housing_cat = housing[["ocean_proximity"]]
 
-housing_prepared = housing_tr.join(
-    pd.get_dummies(housing_cat, drop_first=True)
-)
+housing_prepared = housing_tr.join(pd.get_dummies(housing_cat, drop_first=True))
+ingestion_logger.info("Data Ingestion - Trainng Data - Prepared")
 
-
-lin_reg = LinearRegression()
-lin_reg.fit(housing_prepared, housing_labels)
-
-
-housing_predictions = lin_reg.predict(housing_prepared)
-lin_mse = mean_squared_error(housing_labels, housing_predictions)
-lin_rmse = np.sqrt(lin_mse)
-lin_rmse
-
-
-lin_mae = mean_absolute_error(housing_labels, housing_predictions)
-lin_mae
-
-
-tree_reg = DecisionTreeRegressor(random_state=42)
-tree_reg.fit(housing_prepared, housing_labels)
-
-housing_predictions = tree_reg.predict(housing_prepared)
-tree_mse = mean_squared_error(housing_labels, housing_predictions)
-tree_rmse = np.sqrt(tree_mse)
-tree_rmse
-
-
-param_distribs = {
-    "n_estimators": randint(low=1, high=200),
-    "max_features": randint(low=1, high=8),
-}
-
-forest_reg = RandomForestRegressor(random_state=42)
-rnd_search = RandomizedSearchCV(
-    forest_reg,
-    param_distributions=param_distribs,
-    n_iter=10,
-    cv=5,
-    scoring="neg_mean_squared_error",
-    random_state=42,
-)
-rnd_search.fit(housing_prepared, housing_labels)
-cvres = rnd_search.cv_results_
-for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
-    print(np.sqrt(-mean_score), params)
-
-
-param_grid = [
-    # try 12 (3×4) combinations of hyperparameters
-    {"n_estimators": [3, 10, 30], "max_features": [2, 4, 6, 8]},
-    # then try 6 (2×3) combinations with bootstrap set as False
-    {"bootstrap": [False], "n_estimators": [3, 10], "max_features": [2, 3, 4]},
-]
-
-forest_reg = RandomForestRegressor(random_state=42)
-# train across 5 folds, that's a total of (12+6)*5=90 rounds of training
-grid_search = GridSearchCV(
-    forest_reg,
-    param_grid,
-    cv=5,
-    scoring="neg_mean_squared_error",
-    return_train_score=True,
-)
-grid_search.fit(housing_prepared, housing_labels)
-
-grid_search.best_params_
-cvres = grid_search.cv_results_
-for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
-    print(np.sqrt(-mean_score), params)
-
-feature_importances = grid_search.best_estimator_.feature_importances_
-sorted(zip(feature_importances, housing_prepared.columns), reverse=True)
-
-
-final_model = grid_search.best_estimator_
-
+# validation data
 X_test = strat_test_set.drop("median_house_value", axis=1)
 y_test = strat_test_set["median_house_value"].copy()
 
@@ -220,12 +152,23 @@ X_test_prepared["population_per_household"] = (
 
 X_test_cat = X_test[["ocean_proximity"]]
 
-X_test_prepared = X_test_prepared.join(
-    pd.get_dummies(X_test_cat, drop_first=True)
-)
+X_test_prepared = X_test_prepared.join(pd.get_dummies(X_test_cat, drop_first=True))
+ingestion_logger.info("Data Ingestion - Validation Data - Prepared")
 
+# user argument for output data path
+parser = argparse.ArgumentParser()
+parser.add_argument("--path", help="Output data path for processed data")
+args = parser.parse_args()
 
+if args.path:
+    DATA_PATH = PARENT_PATH + "/" + args.path + "/"
+else:
+    DATA_PATH = PARENT_PATH + "/data/processed/"
 
-final_predictions = final_model.predict(X_test_prepared)
-final_mse = mean_squared_error(y_test, final_predictions)
-final_rmse = np.sqrt(final_mse)
+# writing files
+housing_prepared.to_csv(DATA_PATH + "housing_prepared.csv", index=False)
+housing_labels.to_csv(DATA_PATH + "housing_labels.csv", index=False)
+X_test_prepared.to_csv(DATA_PATH + "X_test_prepared.csv", index=False)
+y_test.to_csv(DATA_PATH + "y_test.csv", index=False)
+pickle.dump(imputer, open(PARENT_PATH + "/artifacts/imputer.pkl", "wb"))
+ingestion_logger.info("Data Ingestion - Completed")

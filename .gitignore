@@ -1,3 +1,8 @@
 *.pyc
+*.pytest_cache
 *.csv
-datasets/
+data/**/*.csv
+logs/*.log
+artifacts/*.sav
+artifacts/*.pkl
+results/*.csv

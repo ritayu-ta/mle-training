@@ -16,7 +16,9 @@ The following techniques have been used:
 
 ## To excute the script
 ```
-conda env create -f env.yml
+conda env create -f deploy/conda/env.yml
 conda activate mle-dev
-python nonstandardcode.py
+python src/ingest_data.py --path data/processed
+python src/train.py --input data/processed --output artifacts
+python src/score.py --model artifacts --dataset data/processed --output results
 ```
