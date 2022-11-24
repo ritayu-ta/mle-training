@@ -18,3 +18,7 @@ This Repository contains the resources for my tutorial **"Managing the end-to-en
 
 ## Command to setup mlflow server
 - `mlflow server --backend-store-uri mlruns/ --default-artifact-root mlruns/ --host localhost --port 5000`
+
+## mlflow UI after running experiment and runs
+
+![mlflow UI](https://github.com/ritayu-ta/mle-training/blob/mlflow-experiment/mlflow-UI.png)
