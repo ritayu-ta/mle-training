@@ -1,22 +1,20 @@
-# Median housing value prediction
+# Managing the end-to-end machine learning lifecycle with MLFlow
 
-The housing data can be downloaded from https://raw.githubusercontent.com/ageron/handson-ml/master/. The script has codes to download the data. We have modelled the median house value on given housing data. 
+This Repository contains the resources for my tutorial **"Managing the end-to-end machine learning lifecycle with MLFlow"** at pyData/pyCon Berlin 2019.
 
-The following techniques have been used: 
+# Basic setup
 
- - Linear regression
- - Decision Tree
- - Random Forest
+## Setup the environment
+- clone this repository
+- **with virtualenv (recommended)**
+  - install virtualenv: `pip install virtualenv`
+  - create a new environment: `virtualenv mlflow_tutorial`
+  - activate the environment: `source mlflow_tutorial/bin/activate`
+  - run `pip install -r requirements.txt`
 
-## Steps performed
- - We prepare and clean the data. We check and impute for missing values.
- - Features are generated and the variables are checked for correlation.
- - Multiple sampling techinuqies are evaluated. The data set is split into train and test.
- - All the above said modelling techniques are tried and evaluated. The final metric used to evaluate is mean squared error.
+## The notebook
+- Get the `mlflow-example.ipynb`
+- run `jupyter notebook`
 
-## To excute the script
-```
-conda env create -f env.yml
-conda activate mle-dev
-python nonstandardcode.py
-```
+## Command to setup mlflow server
+- `mlflow server --backend-store-uri mlruns/ --default-artifact-root mlruns/ --host localhost --port 5000`

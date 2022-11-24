@@ -1,0 +1,6 @@
+artifact_location: mlruns/336711984254309563
+creation_time: 1669315300484
+experiment_id: '336711984254309563'
+last_update_time: 1669315300484
+lifecycle_stage: active
+name: ElasticNet_wine

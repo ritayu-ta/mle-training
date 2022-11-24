@@ -1,0 +1,15 @@
+artifact_uri: mlruns/336711984254309563/246129a29d5e4790bd72093ad3999644/artifacts
+end_time: 1669315319944
+entry_point_name: ''
+experiment_id: '336711984254309563'
+lifecycle_stage: active
+run_id: 246129a29d5e4790bd72093ad3999644
+run_name: stylish-ape-285
+run_uuid: 246129a29d5e4790bd72093ad3999644
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1669315314317
+status: 3
+tags: []
+user_id: Ritayu Nagpal
