@@ -1,0 +1,15 @@
+artifact_uri: mlruns/860959266319134704/a5e1d43d2abf4b66a025225b88c42eae/artifacts
+end_time: 1669997308808
+entry_point_name: ''
+experiment_id: '860959266319134704'
+lifecycle_stage: active
+run_id: a5e1d43d2abf4b66a025225b88c42eae
+run_name: MODEL_TRAIN
+run_uuid: a5e1d43d2abf4b66a025225b88c42eae
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1669997115735
+status: 3
+tags: []
+user_id: Ritayu Nagpal

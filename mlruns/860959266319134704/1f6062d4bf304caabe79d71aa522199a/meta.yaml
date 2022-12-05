@@ -1,0 +1,15 @@
+artifact_uri: mlruns/860959266319134704/1f6062d4bf304caabe79d71aa522199a/artifacts
+end_time: 1669997309088
+entry_point_name: ''
+experiment_id: '860959266319134704'
+lifecycle_stage: active
+run_id: 1f6062d4bf304caabe79d71aa522199a
+run_name: PRICE_PREDICTION
+run_uuid: 1f6062d4bf304caabe79d71aa522199a
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1669997112338
+status: 3
+tags: []
+user_id: Ritayu Nagpal
